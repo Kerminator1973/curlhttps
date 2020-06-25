@@ -116,7 +116,12 @@ git clone https://github.com/openssl/openssl.git
 Сборка curllib.lib осуществляется из папки "\winbuild\" следующей командой:
 
 ```
-nmake /f Makefile.vc mode=static DEBUG=yes WITH_ZLIB=static ZLIB_PATH=d:\Sources\deps WITH_SSL=static SSL_PATH=d:\Sources\curl\openssl ENABLE_SSPI=no ENABLE_IPV6=no ENABLE_IDN=no ENABLE_WINSSL=no
+nmake /f Makefile.vc mode=static DEBUG=yes WITH_ZLIB=static 
+  ZLIB_PATH=d:\Sources\deps 
+  WITH_SSL=static SSL_PATH=d:\Sources\curl\openssl 
+  ENABLE_SSPI=no ENABLE_IPV6=no ENABLE_IDN=no ENABLE_WINSSL=no
 ```
 
 Параметр "mode" определяет тип линковки (dll, статическая линковка). Флаг "DEBUG" позволяет указать, какую версию следует собирать (Debug/Release). Параметры WITH_ZLIB и ZLIB_PATH указывают на необходимость линковки **Zlib** и путь к исходникам. А параметры WITH_SSL и SSL_PATH - необходимость линковки **openSSL** и путь к исходникам. На начальном этапе можно собрать библиотеку без openSSL. Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
+
+Результат сборки находится в папке: **\curl\builds**.
