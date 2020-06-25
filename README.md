@@ -91,6 +91,8 @@ git clone https://github.com/openssl/openssl.git
 1. libcrypto_static.lib
 2. libssl_static.lib
 
+Создал в openSSL папку lib и скопировал в неё lib-файлы. Папка include в openSSL уже есть.
+
 ## Сборка Zlib
 
 Для сборки проекта под Microsoft Windows рекомендуется использовать подходящий solution из папки `\zlib\contrib\vstudio`.
@@ -101,15 +103,16 @@ git clone https://github.com/openssl/openssl.git
 2. Применением CMake
 3. Сборкой библиотек с использованием **Visual Studio 2015** и использованием этих библиотек для включения в проект для **Visual Studio 2019**
 
+Создал папку deps с подпапками lib и include и скопировал соответствующие файлы в эти папки.
+
 ## Сборка Curl
+
+Перед началом сборки необходимо выполнить командный скрипт **buildconf.bat**. В числе прочего, этот скрипт сгенерирует файл **curl\src\tool_hugehelp.c**, без которого сборка не будет успешной.
 
 Сборка curllib.lib осуществляется из папки "\winbuild\" следующей командой:
 
 ```
-nmake /f Makefile.vc mode=static DEBUG=yes 
-  WITH_ZLIB=static ZLIB_PATH=c:\Projects\curl-7.70.0\deps 
-  WITH_SSL=static SSL_PATH=c:\Projects\curl-7.70.0\deps
-  ENABLE_SSPI=no ENABLE_IPV6=no ENABLE_IDN=no ENABLE_WINSSL=no  
+nmake /f Makefile.vc mode=static DEBUG=yes WITH_ZLIB=static ZLIB_PATH=d:\Sources\deps WITH_SSL=static SSL_PATH=d:\Sources\curl\openssl ENABLE_SSPI=no ENABLE_IPV6=no ENABLE_IDN=no ENABLE_WINSSL=no
 ```
 
 Параметр "mode" определяет тип линковки (dll, статическая линковка). Флаг "DEBUG" позволяет указать, какую версию следует собирать (Debug/Release). Параметры WITH_ZLIB и ZLIB_PATH указывают на необходимость линковки **Zlib** и путь к исходникам. А параметры WITH_SSL и SSL_PATH - необходимость линковки **openSSL** и путь к исходникам. На начальном этапе можно собрать библиотеку без openSSL. Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
