@@ -93,6 +93,8 @@ git clone https://github.com/openssl/openssl.git
 
 Создал в openSSL папку lib и скопировал в неё lib-файлы. Папка include в openSSL уже есть.
 
+Ключевой нюанс состоит в том, что начиная с версии 1.1.0 OpenSSL изменил названия их библиотек: libeay32.dll -> libcrypto.dll ssleay32.dll -> libssl.dll.
+
 ## Сборка Zlib
 
 Для сборки проекта под Microsoft Windows рекомендуется использовать подходящий solution из папки `\zlib\contrib\vstudio`.
