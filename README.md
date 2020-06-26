@@ -165,6 +165,15 @@ int main(void)
 }
 ```
 
+Простейший вариант использования https (без аутентификации host-а и peer-а):
+
+```cpp
+curl_easy_setopt(curl, CURLOPT_URL, "https://www.google.com/");
+curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+result = curl_easy_perform(curl);
+```
+
 Важное замечание: в случае, если curllib.lib была собрана как статическая библиотека, необходимо определить в проекте define **CURL_STATICLIB**.
 
 Состав линкуемых библиотек должен быть таким:
