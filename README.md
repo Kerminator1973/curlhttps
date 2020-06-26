@@ -126,3 +126,53 @@ nmake /f Makefile.vc mode=static DEBUG=yes WITH_ZLIB=static
 Параметр "mode" определяет тип линковки (dll, статическая линковка). Флаг "DEBUG" позволяет указать, какую версию следует собирать (Debug/Release). Параметры WITH_ZLIB и ZLIB_PATH указывают на необходимость линковки **Zlib** и путь к исходникам. А параметры WITH_SSL и SSL_PATH - необходимость линковки **openSSL** и путь к исходникам. На начальном этапе можно собрать библиотеку без openSSL. Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
 
 Результат сборки находится в папке: **\curl\builds**.
+
+# Примеры кода
+
+Множество примеров кода доступно [по ссылке на официальном сайте](https://curl.haxx.se/libcurl/c/example.html). Типовой пример:
+
+```cpp
+#include <iostream>
+#include <curl/curl.h>
+
+int main(void)
+{
+	CURL *curl;
+	CURLcode result;
+
+	curl_global_init(CURL_GLOBAL_DEFAULT);
+	curl = curl_easy_init();
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, "http://www.example.com/");   // Set URL
+		
+		// If you want to set any more options, do it here, before making the request.
+		// Perform the request which prints to stdout
+		result = curl_easy_perform(curl);
+		// Error check
+		if (result != CURLE_OK) {
+			std::cerr << "Error during curl request: " 
+				<< curl_easy_strerror(result) << std::endl;
+		}
+		
+		curl_easy_cleanup(curl);
+      
+	} else {
+		std::cerr << "Error initializing curl." << std::endl;
+	}
+
+	curl_global_cleanup();
+	return 0;
+}
+```
+
+Важное замечание: в случае, если curllib.lib была собрана как статическая библиотека, необходимо определить в проекте define **CURL_STATICLIB**.
+
+Состав линкуемых библиотек должен быть таким:
+
+1. \curl\libcurl.lib
+2. \zlib\zlib.lib
+3. \openssl\libcrypto.lib
+4. \openssl\libssl.lib
+5. ws2_32.lib
+6. crypt32.lib
+7. Wldap32.lib
