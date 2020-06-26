@@ -169,10 +169,9 @@ int main(void)
 
 Состав линкуемых библиотек должен быть таким:
 
-1. \curl\libcurl.lib
-2. \zlib\zlib.lib
-3. \openssl\libcrypto.lib
-4. \openssl\libssl.lib
-5. ws2_32.lib
-6. crypt32.lib
-7. Wldap32.lib
+1. \curl\libcurl.lib - реализация сетевых протоколов (HTTP/HTTPS/FTP и т.д.)
+2. \zlib\zlib.lib - упакова/распаковка данные
+3. \openssl\libcrypto.lib, \openssl\libssl.lib - реализация криптографических алгоритмов
+4. ws2_32.lib - TCP/IP
+5. crypt32.lib - доступ к сертификатам Windows
+6. Wldap32.lib - LDAP API, доменная аутентификация
