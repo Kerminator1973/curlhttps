@@ -120,10 +120,20 @@ git clone https://github.com/openssl/openssl.git
 nmake /f Makefile.vc mode=static DEBUG=yes WITH_ZLIB=static 
   ZLIB_PATH=d:\Sources\deps 
   WITH_SSL=static SSL_PATH=d:\Sources\curl\openssl 
-  ENABLE_SSPI=no ENABLE_IPV6=no ENABLE_IDN=no ENABLE_WINSSL=no
+  ENABLE_SSPI=no ENABLE_IPV6=no ENABLE_IDN=no ENABLE_WINSSL=yes
 ```
 
-Параметр "mode" определяет тип линковки (dll, статическая линковка). Флаг "DEBUG" позволяет указать, какую версию следует собирать (Debug/Release). Параметры WITH_ZLIB и ZLIB_PATH указывают на необходимость линковки **Zlib** и путь к исходникам. А параметры WITH_SSL и SSL_PATH - необходимость линковки **openSSL** и путь к исходникам. На начальном этапе можно собрать библиотеку без openSSL. Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
+Параметр "mode" определяет тип линковки (dll, статическая линковка). Флаг "DEBUG" позволяет указать, какую версию следует собирать (Debug/Release). Параметры WITH_ZLIB и ZLIB_PATH указывают на необходимость линковки **Zlib** и путь к исходникам. А параметры WITH_SSL и SSL_PATH - необходимость линковки **openSSL** и путь к исходникам.
+
+[SSPI](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) это Security Support Provider Interface, интерфейс Microsoft Windows, который выполняет задачи аутентификации пользователей, в том числе, по протоколам NTLM, Kerberos. Чаще всего используется для доступа в сеть через Proxy-сервера. Указать на необходимость использования SSPI можно посредством флага ENABLE_SSPI. *Возможно, что этот флаг указывает на необходимость использования Schannel (из Windows SSPI), которая является нативной SSL библиотекой в Windows. Тем не менее, openSSL чаще всего используется как SSL backend в современных приложениях.*
+
+Curl может работать не только по IPv4, но и по **IPv6**, что должно быть отражено в значении флага **ENABLE_IPV6**.
+
+*Вероятно, опция **ENABLE_WINSSL** указывает на необходимость проверки отзыва сертификатов, при https-соединении, если значение флага установлено в **yes**.
+
+Флаг **ENABLE_IDN** указывает на необходимость поддержки IDN - international domain names, т.е. имён ресурсов на национальных языках.
+
+Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
 
 Результат сборки находится в папке: **\curl\builds**.
 
@@ -185,6 +195,10 @@ result = curl_easy_perform(curl);
 5. crypt32.lib - доступ к сертификатам Windows
 6. Wldap32.lib - LDAP API, доменная аутентификация
 
+Рахождение c инструкцией от Peter Rekdal Sunde: он включает библиотеку wsock32.lib, но не включает crypt32.lib.
+
 # Дополнительно
 
 Разработка [скрипта сборки под Windows](buildscript.md).
+
+[Альтернативная инструкция](https://github.com/peters/curl-for-windows) по сборке Curl.
