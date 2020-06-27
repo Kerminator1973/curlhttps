@@ -184,3 +184,7 @@ result = curl_easy_perform(curl);
 4. ws2_32.lib - TCP/IP
 5. crypt32.lib - доступ к сертификатам Windows
 6. Wldap32.lib - LDAP API, доменная аутентификация
+
+# Дополнительно
+
+Разработка [скрипта сборки под Windows](buildscript.md).
