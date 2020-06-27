@@ -195,7 +195,7 @@ result = curl_easy_perform(curl);
 5. crypt32.lib - доступ к сертификатам Windows
 6. Wldap32.lib - LDAP API, доменная аутентификация
 
-Рахождение c инструкцией от Peter Rekdal Sunde: он включает библиотеку wsock32.lib, но не включает crypt32.lib.
+Рахождение c инструкцией от [Peter Rekdal Sunde](https://github.com/peters): он включает библиотеку wsock32.lib, но не включает crypt32.lib.
 
 # Дополнительно
 
