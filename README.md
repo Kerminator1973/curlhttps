@@ -184,6 +184,16 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 result = curl_easy_perform(curl);
 ```
 
+Проверка имени хоста в сертификате осуществляется, если установить следущий флаг:
+
+```cpp
+curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+```
+
+Использование клиентского сертификата в SSL-соединении есть в [примере simplessl](https://curl.haxx.se/libcurl/c/simplessl.html).
+
+Выполнение аутентификации сервера с использованием самоподписанного сертификата, хранимого на клиенте можно увидеть в [примере cacertinmem](https://curl.haxx.se/libcurl/c/cacertinmem.html).
+
 Важное замечание: в случае, если curllib.lib была собрана как статическая библиотека, необходимо определить в проекте define **CURL_STATICLIB**.
 
 Состав линкуемых библиотек должен быть таким:
@@ -201,4 +211,4 @@ result = curl_easy_perform(curl);
 
 Разработка [скрипта сборки под Windows](buildscript.md).
 
-[Альтернативная инструкция](https://github.com/peters/curl-for-windows) по сборке Curl.
+[Похожую инструкцию](https://github.com/peters/curl-for-windows) по сборке Curl разработал Peter Rekdal Sunde.
