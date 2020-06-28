@@ -1,0 +1,1 @@
+"c:\Program Files\OpenSSL-Win64\bin\openssl.exe" req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server_dev.key -out server_dev.crt -subj "/C=US/ST=CA/L=Irvine/O=Acme Inc./CN=localhost" -reqexts v3_req -reqexts SAN -extensions SAN -config cfg
