@@ -224,3 +224,5 @@ curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
 [Похожую инструкцию](https://github.com/peters/curl-for-windows) по сборке Curl разработал Peter Rekdal Sunde.
 
 [Сравнение кода](pem.md) проверки сертификатов сервера в приложениях с использованием curllib, boost.beast и Android-приложении.
+
+Для тестирования кода, использующего различные сертификаты можно использовать сайт [badssl](https://badssl.com/).
