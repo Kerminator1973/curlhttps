@@ -1,15 +1,17 @@
 # Проверка самоподписанного сертификата сервера
 
-С целью идентификации общей части кода проверки самоподписанного сертификата сервера, сравнил соответствующую реализацию в проложениях с использование Curllib, Boost.Beast и Android.
+С целью идентификации общей части кода проверки самоподписанного сертификата сервера, сравнил соответствующую реализацию в проложениях с использование curllib, Boost.Beast и Android.
 
-Подготовка к проверке в Curllib:
+# curllib
+
+Подготовка к проверке в curllib:
 
 ```cpp
 curl_easy_setopt(ch, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
 rv = curl_easy_perform(ch);
 ```
 
-Реализация функции sslctx_function:
+Реализация функции sslctx_function():
 
 ```cpp
 static CURLcode sslctx_function(CURL* curl, void* sslctx, void* parm)
@@ -56,6 +58,17 @@ static CURLcode sslctx_function(CURL* curl, void* sslctx, void* parm)
     return rv;
 }
 ```
+
+Что было сделано в подготовительной части:
+
+1. Был создан буфер ввода/вывода (BIO), посредством openSSL, в который поместили сертификат (pem), закодированный в base64. Могло бы быть несколько сертификатов
+2. Был получен X509_STORE
+3. Все сертификаты из pem было добавлены в  X509_STORE
+4. Буферы были освобождены
+
+Кажется логичным вызывать функцию sslctx_function() только один раз на приложение.
+
+## boost.beast
 
 В boost.beast мы загружаем сертификат в boost::asio::ssl::context:
 
