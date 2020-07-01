@@ -57,3 +57,51 @@ static CURLcode sslctx_function(CURL* curl, void* sslctx, void* parm)
 }
 ```
 
+В boost.beast мы загружаем сертификат в boost::asio::ssl::context:
+
+```cpp
+m_Context->load_verify_file(m_CertificateName);
+```
+
+Проверка сертификата осуществляется через callback:
+
+boost::asio::connect(m_SslSocket->next_layer(), m_Resolver.resolve(m_Host, m_Port));
+
+```cpp
+// Perform SSL handshake and verify the remote host's certificate
+m_SslSocket->set_verify_mode(boost::asio::ssl::verify_peer);
+m_SslSocket->set_verify_callback([](auto&& preverified, auto&& ctx) {
+	char subject_name[256];
+	X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
+	X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
+	return preverified;
+});
+```
+
+Использовать корневые сертификаты Windows можно так:
+
+```cpp
+void HttpsTransport::AddWindowsRootCerts()
+{
+	HCERTSTORE hStore = CertOpenSystemStore(0, "ROOT");
+	if (hStore != NULL) {
+
+		X509_STORE* store = X509_STORE_new();
+		PCCERT_CONTEXT pContext = NULL;
+		while ((pContext = CertEnumCertificatesInStore(hStore, pContext)) != NULL) {
+			X509* x509 = d2i_X509(NULL,
+				(const unsigned char**)&pContext->pbCertEncoded,
+				pContext->cbCertEncoded);
+			if (x509 != NULL) {
+				X509_STORE_add_cert(store, x509);
+				X509_free(x509);
+			}
+		}
+
+		CertFreeCertificateContext(pContext);
+		CertCloseStore(hStore, 0);
+
+		SSL_CTX_set_cert_store(m_Context->native_handle(), store);
+	}
+}
+```
