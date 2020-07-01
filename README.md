@@ -213,4 +213,4 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
 [Похожую инструкцию](https://github.com/peters/curl-for-windows) по сборке Curl разработал Peter Rekdal Sunde.
 
-[Сравнение кода](pem.md) проверки самоподписанных сертификатов в curllib, boost.beast и Android-приложении.
+[Сравнение кода](pem.md) проверки сертификатов сервера в приложениях с использованием curllib, boost.beast и Android-приложении.
