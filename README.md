@@ -190,9 +190,19 @@ result = curl_easy_perform(curl);
 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 ```
 
-Использование клиентского сертификата в SSL-соединении есть в [примере simplessl](https://curl.haxx.se/libcurl/c/simplessl.html).
+Использование клиентского сертификата в SSL-соединении есть в [примере simplessl](https://curl.haxx.se/libcurl/c/simplessl.html). См.:
 
-Выполнение аутентификации сервера с использованием самоподписанного сертификата, хранимого на клиенте можно увидеть в [примере cacertinmem](https://curl.haxx.se/libcurl/c/cacertinmem.html).
+```cpp
+/* set the cert for client authentication */ 
+curl_easy_setopt(curl, CURLOPT_SSLCERT, pCertFile);
+```
+
+Выполнение аутентификации сервера с использованием самоподписанного сертификата, хранимого на клиенте можно увидеть в [примере cacertinmem](https://curl.haxx.se/libcurl/c/cacertinmem.html). См.:
+
+```cpp
+/* set the file with the certs vaildating the server */ 
+curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
+```
 
 Важное замечание: в случае, если curllib.lib была собрана как статическая библиотека, необходимо определить в проекте define **CURL_STATICLIB**.
 
