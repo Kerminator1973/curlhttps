@@ -105,3 +105,110 @@ void HttpsTransport::AddWindowsRootCerts()
 	}
 }
 ```
+
+Вот такой код был использован в проекте GrandCarWash:
+
+```java
+public static void changeApiBaseUrl(Context context, String newApiBaseUrl) {
+	apiBaseUrl = newApiBaseUrl;
+
+	// Ниже идёт код, обеспечивающий импорт сертификата для проверки сервера
+	// из ресурсов приложения (см. подкаталог "raw", файл "server_public.crt").
+	// Статьи по установке сертификата сервера:
+	//      https://marthinmhpakpahan.wordpress.com/2016/10/26/implement-ssl-android-retrofit/
+	//      https://gist.github.com/erickok/7692592
+
+	// Следующий далее код, содержит несколько обработчиков исключений, что
+	// оставлено для демонстрационных целей
+
+	// Используем фабрику сертификатов явно указывая, что мы будем использовать
+	// X.509 — стандарт ITU-T для инфраструктуры открытого ключа
+	CertificateFactory cf = null;
+	try {
+		cf = CertificateFactory.getInstance("X.509");
+	} catch (CertificateException e) {
+		e.printStackTrace();
+	}
+
+	// Загружаем сертификаты (CAs) используя InputStream. Сертификат
+	// хранится в подкаталоге "raw", в файле "server_public.crt".
+	// Генерируем объект Certificate, по стандарту X.509
+	InputStream cert = context.getResources().openRawResource(R.raw.server_public);
+	Certificate ca=null;
+	try {
+		ca = cf.generateCertificate(cert);
+	} catch (CertificateException e) {
+		e.printStackTrace();
+	} finally {
+		try {
+			cert.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Создаём хранилище ключей (KeyStore) в котором мы будем хранить
+	// доверенные сертификаты (trusted CAs)
+	String keyStoreType = KeyStore.getDefaultType();
+	KeyStore keyStore = null;
+	try {
+		keyStore = KeyStore.getInstance(keyStoreType);
+	} catch (KeyStoreException e) {
+		e.printStackTrace();
+	}
+
+	try {
+		keyStore.load(null, null);
+	} catch (IOException e) {
+		e.printStackTrace();
+	} catch (NoSuchAlgorithmException e) {
+		e.printStackTrace();
+	} catch (CertificateException e) {
+		e.printStackTrace();
+	}
+
+	try {
+		keyStore.setCertificateEntry("ca", ca);
+	} catch (KeyStoreException e) {
+		e.printStackTrace();
+	}
+
+	// Создаём компонент TrustManager, который будет доверять сертификатам
+	// из созданного нами хранилища сертификатов
+	String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+	TrustManagerFactory tmf = null;
+	try {
+		tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+	} catch (NoSuchAlgorithmException e) {
+		e.printStackTrace();
+	}
+	try {
+		tmf.init(keyStore);
+	} catch (KeyStoreException e) {
+		e.printStackTrace();
+	}
+
+	// Создаём фабрику SSL/TLS (SSLSocketFactory), которая использует
+	// компонент TrustManager
+	SSLContext sslContext = null;
+	try {
+		sslContext = SSLContext.getInstance("TLS");
+	} catch (NoSuchAlgorithmException e) {
+		e.printStackTrace();
+	}
+	try {
+		sslContext.init(null, tmf.getTrustManagers(), null);
+	} catch (KeyManagementException e) {
+		e.printStackTrace();
+	}
+
+	// Создаём сервис Retrofit для подключения к нашему WebAPI
+	builder = new Retrofit.Builder()
+			.client(httpClient.sslSocketFactory(
+						sslContext.getSocketFactory(),
+						(X509TrustManager) tmf.getTrustManagers()[0])
+					.build())
+			.addConverterFactory(GsonConverterFactory.create())
+			.baseUrl(apiBaseUrl);
+}
+```
