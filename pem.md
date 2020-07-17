@@ -247,6 +247,49 @@ public static void changeApiBaseUrl(Context context, String newApiBaseUrl) {
 5. Создаётся фабрика SSLSocketFactory связанная с TrustManager, который был проинициализирован keyStore
 6. Создаётся объект организации защищённого соединения, посредством SSLSocketFactory
 
+## Код на C#
+
+```csharp
+// Определяем обработчик, который будет проверять сертификат сервера
+var handler = new HttpClientHandler() { UseProxy = false, UseCookies = false, PreAuthenticate = false };
+X509Certificate2 localcert = new X509Certificate2(fullFilenameToClientCertificate);
+handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => {
+	return localcert.Thumbprint.Equals(cert.Thumbprint);
+};
+
+// Определяем объект, который будет выполнять подключение по https
+var client = new HttpClient(handler) { 
+	Timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds) 
+};
+
+XDocument requestXml = new XDocument();
+requestXml.Add(new[] {
+	new XElement("Request", new object[] { 
+		...
+	})
+});
+
+StringWriter writer = new Protocols.Utf8StringWriter();
+requestXml.Save(writer, SaveOptions.None);
+
+var httpContent = new StringContent(writer.ToString(), System.Text.Encoding.UTF8, "application/xml");
+
+HttpResponseMessage response = client.PostAsync(uriGate, httpContent).GetAwaiter().GetResult();
+string resp = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+// Метод сбросит исключение, если код ответа будет отличен от успешного
+response.EnsureSuccessStatusCode();
+```
+
+В этом коде происходит следующее:
+
+1. Сертификат считывается из файла
+2. Определяется процедура (обработчик) проверки сертификата сервера
+3. Создаётся HttpClient для взаимодействия по протоколу https
+4. Формируется полезная нагрузка (payload) запроса
+5. Выполняется http-запрос
+6. Обрабатывается результат
+
 ## Общая информация по X.509
 
 **X.509** — стандарт Public key infrastructure (PKI). X.509 определяет стандартные форматы данных и процедуры распределения открытых ключей с помощью соответствующих сертификатов с цифровыми подписями. Эти сертификаты предоставляются удостоверяющими центрами (англ. Certificate Authority).
