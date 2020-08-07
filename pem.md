@@ -300,6 +300,8 @@ response.EnsureSuccessStatusCode();
 Для того, чтобы обеспечить проверку сертификата клиента на сервере необходимо необходимы private-ключ клиента и его сертификат. Эти данные могут хранится в pfx-файле, который передаётся в первом параметре конструктора класса X509Certificate2(). Вторым параметром является пароль для расшифровки сертификата. Ниже приведён код на C#:
 
 ```csharp
+handler.ClientCertificateOptions = ClientCertificateOption.Manual;  // Это default-значение (может быть опущено)
+//handler.SslProtocols = SslProtocols.Tls12;                        // Можно затребовать конкретную версию TLS
 handler.ClientCertificates.Add(new X509Certificate2(openADMCertificateFile, "the_password_of_the_certificate"));
 ```
 
@@ -307,6 +309,28 @@ handler.ClientCertificates.Add(new X509Certificate2(openADMCertificateFile, "the
 
 ```csharp
 handler.ClientCertificates.Add(new X509Certificate2("the_certificate_filename.pfx"));
+```
+
+# Проверка сертификата клиента на Node.js
+
+Для того, чтобы затребовать проверку клиентского сертификата сервером, достаточно указать поле **ca** в опциях подключения:
+
+```javascript
+const https = require("https"),
+fs = require("fs");
+
+const options = {
+	key: fs.readFileSync("server_dev.key"),		// Неоходимо для проверкой сервера
+	cert: fs.readFileSync("server_dev.crt"),	// на стороне клиента.
+	ca: fs.readFileSync('client-localhost.pem')	// Проверка сертификата клиента
+};
+
+let server = https.createServer(options, app).listen(3000, function() {
+
+	let host = server.address().address;
+	let port = server.address().port;
+	console.log('The server listening at ' + host + ':' + port);  
+});
 ```
 
 ## Общая информация по X.509
