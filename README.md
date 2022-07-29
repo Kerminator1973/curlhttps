@@ -86,7 +86,7 @@ git clone https://github.com/openssl/openssl.git
 
 Для успешной генерации скрипта сборки следует добавить в переменную %PATH% путь к компилятору NASM. Заметим, что NASM [доступен в исходных текстах на GitHub](https://github.com/netwide-assembler/nasm). Установить путь к NASM можно перед сборкой проекта командой: `set PATH=%PATH%;"c:\Program Files (x86)\NASM`
 
-Генерация скрипта сборки осуществляется командой: `perl Configure VC-WIN64A` (для получения 64-битных библиотек) и `perl Configure VC-WIN32` (для генерации 32-битных библиотек).
+Генерация скрипта сборки осуществляется командой: `perl Configure VC-WIN64A` (для получения 64-битных библиотек) и `perl Configure VC-WIN32` (для генерации 32-битных библиотек). Чтобы собрать статическую версию библиотек, следует использовать дополнительный ключ `no-shared`
 
 Успешность формирования конфигурации подтверждается следующим тестовым сообщением в консоли:
 
@@ -110,7 +110,7 @@ git clone https://github.com/openssl/openssl.git
 cd openssl
 "c:\Program Files (x86)\NASM\nasmpath.bat" 
 %comspec% /k "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-perl Configure VC-WIN32
+perl Configure VC-WIN32 no-shared
 nmake
 ```
 
@@ -186,6 +186,28 @@ Curl может работать не только по IPv4, но и по **IPv
 Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
 
 Результат сборки находится в папке: **\curl\builds**.
+
+### Проблемы сборки в июле 2022 года
+
+Попытка сборки curl завершилась неудачей:
+
+``` log
+LINK : fatal error LNK1181: cannot open input file 'libeay32.lib'
+NMAKE : fatal error U1077: '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\BIN\link.exe"' : return code '0x49d'
+Stop.
+NMAKE : fatal error U1077: '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\BIN\nmake.exe"' : return code '0x2'
+Stop.
+```
+
+Доминирующее объяснение в сообществе разработчиков ПО по данной проблеме такое:
+
+``` txt
+The 1.0.2 version is not compatible with the versions >=1.1.0, in particular not with the latest version on the GitHub master branch.
+
+You find the source code for the latest 1.0.2 release at https://www.openssl.org/source/
+```
+
+В [своих комментариях](https://github.com/openssl/openssl/issues/10332), разработчики openSSL указывает, что версия 1.1.0 не совместима с 1.0.2.
 
 ## Примеры кода
 
