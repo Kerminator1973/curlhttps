@@ -2,11 +2,7 @@
 
 Цель репозитария - подготовить библиотеку Curl для использования в приложениях на C++ для выполнения https-запросов с использованием самоподписанных сетификатов.
 
-Сборка Curl должна осуществляться без вспомогательных утилит командной строки.
-
 Целевая платформа: Microsoft Windows 7/10. Компиляторы: Visual Studio 2013 и 2019.
-
-Решение рассматривается как один из альтернативных вариантов библиотеки для разработки приложений C++ с сетевым взаимодействиям по протоколам https. Вместе с **curllib** рассматривается **Boost.Beast**.
 
 Преимущества **curllib**:
 
@@ -140,14 +136,25 @@ nmake
 
 ## Сборка Zlib
 
-Для сборки проекта под Microsoft Windows рекомендуется использовать подходящий solution из папки `\zlib\contrib\vstudio`.
+Для сборки проекта под Microsoft Windows рекомендуется использовать подходящий solution из папки `\zlib\contrib\vstudio`. Доступны solution для **Visual Studio 2008-2015**.
 
-В репозитарии, доступном на момент сборки, последний актуальный проект доступен для **Visual Studio 2015**. Для этого проекта можно выполнить upgrade до **Visual Studio 2019**, но, без применения дополнительных настроек собирается только один проект - **zlibstat.lib**. Решать проблему можно несколькими способами:
+Попытка собрать solution `\zlib\contrib\vstudio\vc12\zlibvc.sln` оказалась не успешной:
 
-1. Настройкой vcproj и sln. Можно заимствовать [решение австралийца Кельвина Ли](https://github.com/kiyolee/zlib-win-build), из которого можно взять только файл "libz.rc" из папки "win32" и наборы sln/vcproj из папок "build-VS2019" и "build-VS2019-MT". Возможно, имеет смысл заимствовать и проекты для VS2013, т.е. поддержка многопоточности - важная задача
-2. Сборкой библиотек с использованием **Visual Studio 2015** и использованием этих библиотек для включения в проект для **Visual Studio 2019**
-3. Попробовать использовать [vcpkg](https://docs.microsoft.com/ru-ru/cpp/build/vcpkg?view=vs-2019)
-4. Применением CMake
+``` output
+1>  crc32.c
+1>..\..\..\crc32.c(1089): error C2708: 'crc32_combine64' : actual parameters length in bytes differs from previous call or reference
+1>          ..\..\..\crc32.c(1072) : see declaration of 'crc32_combine64'
+1>..\..\..\crc32.c(1106): error C2708: 'crc32_combine_gen64' : actual parameters length in bytes differs from previous call or reference
+1>          ..\..\..\crc32.c(1093) : see declaration of 'crc32_combine_gen64'
+1>..\..\..\crc32.c(1111): error C2373: 'crc32_combine_op' : redefinition; different type modifiers
+1>          e:\sources\curlbuild\zlib\zlib.h(1768) : see declaration of 'crc32_combine_op'
+```
+
+В документации по zlib указано, что можно скачать заранее [собранные с ресурса](http://www.winimage.com/zLibDll)
+
+Ещё один способ решения проблем со сборкой - использовать [решение австралийца Кельвина Ли](https://github.com/kiyolee/zlib-win-build). Так, например, для сборки Multithreading приложений средствами Visual Studio 2013 следует использовать solution `\zlib-win-build\build-VS2013-MT`
+
+Сборка проектов libz и libz-static из исходников Кельвина Ли была успешна.
 
 Создал папку deps с подпапками lib и include и скопировал соответствующие файлы в эти папки.
 
