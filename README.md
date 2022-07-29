@@ -23,7 +23,7 @@
 
 Библиотека curllib зависит от других библиотек, в частности от zlib и openSSL.
 
-<img src="./dep_graph.png" alt="isolated" width="400" />
+![alt text](./dep_graph.png "Dependencies graph")
 
 Инструкция по сборке **curllib.lib** подробно описана в файле "\winbuild\BUILD.WINDOWS.txt" исходных текстов, доступных в [официальном репозитарии](https://github.com/curl/curl). Загрузить исходники можно и с [официального сайта](https://curl.haxx.se/download.html).
 
