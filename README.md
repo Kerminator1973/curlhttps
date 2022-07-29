@@ -23,6 +23,8 @@
 
 Библиотека curllib зависит от других библиотек, в частности от zlib и openSSL.
 
+<img src="./dep_graph.png" alt="isolated" width="400" />
+
 Инструкция по сборке **curllib.lib** подробно описана в файле "\winbuild\BUILD.WINDOWS.txt" исходных текстов, доступных в [официальном репозитарии](https://github.com/curl/curl). Загрузить исходники можно и с [официального сайта](https://curl.haxx.se/download.html).
 
 Исходные тексты [openSSL](https://www.openssl.org/source/) могут быть загружены из официального Git-репозитария:
@@ -72,7 +74,7 @@ git clone https://github.com/openssl/openssl.git
 
 ## Сборка openSSL
 
-Заметки о сборке библиотки openSSL под Windows приведены в файле "NOTES.WIN".
+Заметки о сборке библиотеки openSSL под Windows приведены в файле "NOTES.WIN". Также доступна [инструкция на Wiki](https://wiki.openssl.org/index.php/Compilation_and_Installation)
 
 ### Предварительные условия (Prerequisites)
 
@@ -87,6 +89,8 @@ git clone https://github.com/openssl/openssl.git
 Для успешной генерации скрипта сборки следует добавить в переменную %PATH% путь к компилятору NASM. Заметим, что NASM [доступен в исходных текстах на GitHub](https://github.com/netwide-assembler/nasm). Установить путь к NASM можно перед сборкой проекта командой: `set PATH=%PATH%;"c:\Program Files (x86)\NASM`
 
 Генерация скрипта сборки осуществляется командой: `perl Configure VC-WIN64A` (для получения 64-битных библиотек) и `perl Configure VC-WIN32` (для генерации 32-битных библиотек). Чтобы собрать статическую версию библиотек, следует использовать дополнительный ключ `no-shared`
+
+Если необходимо собрать DEBUG-версию, следует использовать ключ `--debug`. Для минимазации времени сборки, следует использовать ключ `no-tests` для отказать от сборки утилит для тестирования библиотек.
 
 Успешность формирования конфигурации подтверждается следующим тестовым сообщением в консоли:
 
@@ -130,9 +134,18 @@ nmake
 1. libcrypto_static.lib
 2. libssl_static.lib
 
-Создал в openSSL папку lib и скопировал в неё lib-файлы. Папка include в openSSL уже есть.
+Результаты сборки необходимо скопировать в папку "lib" внутри папки "openssl".  Это действие является критичным, т.к. скрипт сборки libcurl анализирует файлы в папке, указанной в параметре **SSL_PATH** и если там не будет файла "libssl.lib", то система будет считать, что ей следует выполнять линковку не с актуальными библиотеками openssl (libcrypto.lib, libssl.lib), а с устаревшими библиотеками версий 1.0.2 и ниже (libeay32.lib, ssleay32.lib). Для информации, скрипт сборки "MakefileBuild.vc" содержит вот такую строку:
 
-Начиная с версии 1.1.0 OpenSSL изменил названия их библиотек: libeay32.dll -> libcrypto.dll ssleay32.dll -> libssl.dll.
+``` bash
+!IF "$(WITH_SSL)"=="dll" || "$(WITH_SSL)"=="static"
+!IF EXISTS("$(SSL_LIB_DIR)\libssl.lib")
+SSL_LIBS     = libssl.lib libcrypto.lib
+!ELSE
+SSL_LIBS     = libeay32.lib ssleay32.lib
+!ENDIF
+```
+
+Стоит заметить, что папка include в openSSL уже есть.
 
 ## Сборка Zlib
 
@@ -186,28 +199,6 @@ Curl может работать не только по IPv4, но и по **IPv
 Дополнительные параметры ENABLE_SSPI, ENABLE_IPV6 и ENABLE_WINSSL, по умолчанию, установлены в **yes** - этот фактор следует учитывать при сборке приложения.
 
 Результат сборки находится в папке: **\curl\builds**.
-
-### Проблемы сборки в июле 2022 года
-
-Попытка сборки curl завершилась неудачей:
-
-``` log
-LINK : fatal error LNK1181: cannot open input file 'libeay32.lib'
-NMAKE : fatal error U1077: '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\BIN\link.exe"' : return code '0x49d'
-Stop.
-NMAKE : fatal error U1077: '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\BIN\nmake.exe"' : return code '0x2'
-Stop.
-```
-
-Доминирующее объяснение в сообществе разработчиков ПО по данной проблеме такое:
-
-``` txt
-The 1.0.2 version is not compatible with the versions >=1.1.0, in particular not with the latest version on the GitHub master branch.
-
-You find the source code for the latest 1.0.2 release at https://www.openssl.org/source/
-```
-
-В [своих комментариях](https://github.com/openssl/openssl/issues/10332), разработчики openSSL указывает, что версия 1.1.0 не совместима с 1.0.2.
 
 ## Примеры кода
 
