@@ -218,6 +218,8 @@ Curl может работать не только по IPv4, но и по **IPv
 
 ![alt text](./Dependencies.png "Dependencies")
 
+### Потенциальные проблемы при сборке MFC-приложений с curl
+
 При сборке приложения могут возникнуть следующие проблемы:
 
 ``` log
@@ -227,16 +229,16 @@ Curl может работать не только по IPv4, но и по **IPv
 
 Вероятная причина проблемы - библиотеки были собраны в модели "без MFC", а основное приложение - в модели "с MFC".
 
-Подобные сообщения возникают в случае, если приложение и библиотеки были собраны в разных моделях. Всего в Visual Studio используются четыре модели:
+Всего в Visual Studio используются четыре модели:
 
 - **libcmt.lib**: static CRT link library for a release build (/MT)
 - **libcmtd.lib**: static CRT link library for a debug build (/MTd)
 - **msvcrt.lib**: import library for the release DLL version of the CRT (/MD)
 - **msvcrtd.lib**: import library for the debug DLL version of the CRT (/MDd)
 
-В случае, если собирается консольное приложение без MFC, приложение собирается и работает корректно. Единственный нюанс - при загрузке ресурса в корпоративной сети КБ ДОРС, необходимо явным образом указывать proxy-сервер, либо переходить на ресурс, размещённый в корпоративной сети.
+В случае, если собирается консольное приложение без MFC, компиляция завершается корректно. Единственный нюанс - при загрузке ресурса в корпоративной сети КБ ДОРС, необходимо явным образом указывать proxy-сервер, либо переходить на ресурс, размещённый в корпоративной сети.
 
-Предлагаемое в сети интернет решение:
+Чтобы задавить различия в используемых runtime-ах, можно использовать совет, [найденный в интернет](https://stackoverflow.com/questions/15919435/include-curl-in-mfc-project):
 
 ``` text
 By default, curl compiles with the /MD (dll) run-time library (that's why you get the __imp__ prefix to the unresolved externals).
@@ -249,6 +251,15 @@ set RTLIBCFG=static
 
 Or just add manually /MT to the compiler flags and /NODEFAULTLIB:MSVCRT.lib to the link flags in the makefiles, in case the first suggestion doesn't work.
 ```
+
+Если задавить статическую CRT-библиотку ключём сборки `/NODEFAULTLIB:libcmt.lib`, то при сборке MFC-приложения может возникнуть ошибка:
+
+``` output
+error LNK2001: unresolved external symbol ___argc
+error LNK2001: unresolved external symbol ___wargv
+```
+
+Ошибка устраняется установкой режима использования MFC "Use MFC in a Shared DLL".
 
 ## Примеры кода
 
@@ -297,7 +308,7 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 result = curl_easy_perform(curl);
 ```
 
-Проверка имени хоста в сертификате осуществляется, если установить следущий флаг:
+Проверка имени хоста в сертификате осуществляется, если установить следующий флаг:
 
 ```cpp
 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
