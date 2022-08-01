@@ -225,12 +225,16 @@ Curl может работать не только по IPv4, но и по **IPv
 1>MSVCRT.lib(MSVCR120.dll) : error LNK2005: _strncpy already defined in libcmt.lib(strncpy.obj)
 ```
 
+Вероятная причина проблемы - библиотеки были собраны в модели "без MFC", а основное приложение - в модели "с MFC".
+
 Подобные сообщения возникают в случае, если приложение и библиотеки были собраны в разных моделях. Всего в Visual Studio используются четыре модели:
 
 - **libcmt.lib**: static CRT link library for a release build (/MT)
 - **libcmtd.lib**: static CRT link library for a debug build (/MTd)
 - **msvcrt.lib**: import library for the release DLL version of the CRT (/MD)
 - **msvcrtd.lib**: import library for the debug DLL version of the CRT (/MDd)
+
+В случае, если собирается консольное приложение без MFC, приложение собирается и работает корректно. Единственный нюанс - при загрузке ресурса в корпоративной сети КБ ДОРС, необходимо явным образом указывать proxy-сервер, либо переходить на ресурс, размещённый в корпоративной сети.
 
 ## Примеры кода
 
@@ -260,14 +264,14 @@ int main(void)
 		}
 		
 		curl_easy_cleanup(curl);
-      
+		
 	} else {
 		std::cerr << "Error initializing curl." << std::endl;
 	}
 
 	curl_global_cleanup();
 	return 0;
-}
+	}
 ```
 
 Простейший вариант использования https (без аутентификации host-а и peer-а):
