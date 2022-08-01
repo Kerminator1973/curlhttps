@@ -236,6 +236,20 @@ Curl может работать не только по IPv4, но и по **IPv
 
 В случае, если собирается консольное приложение без MFC, приложение собирается и работает корректно. Единственный нюанс - при загрузке ресурса в корпоративной сети КБ ДОРС, необходимо явным образом указывать proxy-сервер, либо переходить на ресурс, размещённый в корпоративной сети.
 
+Предлагаемое в сети интернет решение:
+
+``` text
+By default, curl compiles with the /MD (dll) run-time library (that's why you get the __imp__ prefix to the unresolved externals).
+
+I assume you build your MFC project with /MT (statically linked run-time).
+
+You can build curl with static run-time by setting the RTLIBCFG environment variable in your build console to static, like this:
+
+set RTLIBCFG=static
+
+Or just add manually /MT to the compiler flags and /NODEFAULTLIB:MSVCRT.lib to the link flags in the makefiles, in case the first suggestion doesn't work.
+```
+
 ## Примеры кода
 
 Множество примеров кода доступно [по ссылке на официальном сайте](https://curl.haxx.se/libcurl/c/example.html). Типовой пример:
@@ -303,6 +317,59 @@ curl_easy_setopt(curl, CURLOPT_SSLCERT, pCertFile);
 curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
 ```
 
+### Получить данные от сервера. Пример
+
+Сначала требуется разработать функцию накопления возвращаемых результатов:
+
+``` cpp
+size_t CurlWrite_CallbackFunc_StdString(void *contents, size_t size, size_t nmemb, std::string *s)
+{
+	size_t newLength = size*nmemb;
+	try
+	{
+		s->append((char*)contents, newLength);
+	}
+	catch (std::bad_alloc &e)
+	{
+		//handle memory problem
+		return 0;
+	}
+	return newLength;
+}
+```
+
+Далее эту функцию можно применить, указав в качестве накопителя информации std::string:
+
+``` cpp
+std::string s;
+
+CURL *curl;
+CURLcode result;
+
+curl_global_init(CURL_GLOBAL_DEFAULT);
+curl = curl_easy_init();
+if (curl) {
+	curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:3000/");   // Set URL
+
+	// If you want to set any more options, do it here, before making the request.
+	// Perform the request which prints to stdout
+
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWrite_CallbackFunc_StdString);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+
+	result = curl_easy_perform(curl);
+	...
+	curl_easy_cleanup(curl);
+```
+
+Вывод сообщения в MFC-приложении:
+
+``` cpp
+::AfxMessageBox(s.c_str(), MB_OK);
+```
+
+## Дополнительные замечания
+
 Важное замечание: в случае, если curllib.lib была собрана как статическая библиотека, необходимо определить в проекте define **CURL_STATICLIB**.
 
 Состав линкуемых библиотек должен быть таким:
@@ -316,7 +383,7 @@ curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
 
 Рахождение c инструкцией от [Peter Rekdal Sunde](https://github.com/peters): он включает библиотеку wsock32.lib, но не включает crypt32.lib.
 
-## Дополнительно
+## Дополнительные ссылки
 
 Разработка [скрипта сборки под Windows](buildscript.md).
 
