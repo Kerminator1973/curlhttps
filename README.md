@@ -272,15 +272,15 @@ curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
 Состав линкуемых библиотек должен быть таким:
 
 1. \curl\libcurl.lib - реализация сетевых протоколов (HTTP/HTTPS/FTP и т.д.)
-2. \zlib\zlib.lib - упакова/распаковка данные
+2. \zlib\zlib.lib - упаковка/распаковка архивов
 3. \openssl\libcrypto.lib, \openssl\libssl.lib - реализация криптографических алгоритмов
 4. ws2_32.lib - TCP/IP
 5. crypt32.lib - доступ к сертификатам Windows
-6. Wldap32.lib - LDAP API, доменная аутентификация
+6. Wldap32.lib - LDAP API, доменная аутентификация (если нужно в рамках проекта)
 
 Рахождение c инструкцией от [Peter Rekdal Sunde](https://github.com/peters): он включает библиотеку wsock32.lib, но не включает crypt32.lib.
 
-# Дополнительно
+## Дополнительно
 
 Разработка [скрипта сборки под Windows](buildscript.md).
 
