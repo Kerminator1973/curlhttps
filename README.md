@@ -200,6 +200,24 @@ Curl может работать не только по IPv4, но и по **IPv
 
 Результат сборки находится в папке: **\curl\builds**.
 
+## Параметры сборки приложений
+
+Настройки пути к include-файлам:
+
+![alt text](./CppGeneral.png "C/C++ General")
+
+В случае, если curllib.lib была собрана как статическая библиотека, необходимо определить в проекте директиву **CURL_STATICLIB**:
+
+![alt text](./Preprocessor.png "Preprocessor directives")
+
+Настройка пути к включаемым библиотекам:
+
+![alt text](./LibraryDirectories.png "Library Directories")
+
+Список подключаемых библиотек:
+
+![alt text](./Dependencies.png "Dependencies")
+
 ## Примеры кода
 
 Множество примеров кода доступно [по ссылке на официальном сайте](https://curl.haxx.se/libcurl/c/example.html). Типовой пример:
