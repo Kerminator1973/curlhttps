@@ -214,7 +214,7 @@ Curl может работать не только по IPv4, но и по **IPv
 
 ![alt text](./LibraryDirectories.png "Library Directories")
 
-Список подключаемых библиотек:
+Список подключаемых библиотек (libcurl_a.lib;libcrypto.lib;libssl.lib;zlib_a.lib;crypt32.lib;Wldap32.lib;ws2_32.lib):
 
 ![alt text](./Dependencies.png "Dependencies")
 
@@ -238,7 +238,7 @@ Curl может работать не только по IPv4, но и по **IPv
 
 ```cpp
 #include <iostream>
-#include <curl/curl.h>
+#include "curl/curl.h"
 
 int main(void)
 {
