@@ -45,10 +45,31 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 result = curl_easy_perform(curl);
 ```
 
-Проверка имени хоста в сертификате осуществляется, если установить следующий флаг:
+Для того, чтобы curl проверял сертификат сервера, следует скачать [CA сертификаты Mozilla](https://curl.se/docs/caextract.html)
+
+Проверка имени хоста и сертификата в сертификате осуществляется, если установить следующие флаги:
 
 ```cpp
-curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+curl_easy_setopt( curl, CURLOPT_CAINFO, "c:/Temp/cacert.pem");
+curl_easy_setopt( curl, CURLOPT_SSL_VERIFYPEER, 2L );
+curl_easy_setopt( curl, CURLOPT_SSL_VERIFYHOST, 2L );
+```
+
+При  использовании опции CURLOPT_CAINFO загрузка CA сертификатов выполняется из внешнего файла, что не всегда практично для промышленных приложений. Можно хранить CA сертификаты в самом приложении (например, в зашифрованном виде) и загружать их динамически:
+
+``` cpp
+char *strpem; // strpem must point to a PEM string
+CURL *curl = curl_easy_init();
+if (curl) {
+    struct curl_blob blob;
+    curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
+    blob.data = strpem;
+    blob.len = strlen(strpem);
+    blob.flags = CURL_BLOB_COPY;
+    curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &blob);
+    ret = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+}
 ```
 
 Использование клиентского сертификата в SSL-соединении есть в [примере simplessl](https://curl.haxx.se/libcurl/c/simplessl.html). См.:
