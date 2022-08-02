@@ -131,15 +131,15 @@
 
 ``` cmd
 git clone https://github.com/openssl/openssl.git
+git checkout openssl-3.0
 cd openssl
 "c:\Program Files (x86)\NASM\nasmpath.bat"
 %comspec% /k "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-set CL=/MP
 perl Configure VC-WIN32 no-shared no-tests
 nmake
 ```
 
-Заметим, что для ускорения сборки за счёт использования всех доступных вычислительных ядер, был установлен флаг `set CL=/MP`.
+Для проверки того, что из репозитария извлечена промышленная, а не developer-сборка, может быть использована команда: `git branch`
 
 Загрузка репозитария осуществляется 5-10 минут, а сборка openSSL занимает около 30 минут.
 
@@ -148,7 +148,7 @@ nmake
 Следует заметить, что если скрипт сборки был сгенерирован следующей ниже командой, то сборка разваливалась с ошибкой:
 
 ``` shell
-perl Configure VC-WIN32 no-shared no-tests zlib --with-zlib-include=e:\curlsrc\deps\include --with-zlib-lib=e:\curlsrc\deps\lib
+perl Configure VC-WIN32 no-shared no-tests zlib --with-zlib-include=e:/curlsrc/deps/include --with-zlib-lib=e:/curlsrc/deps/lib
 ```
 
 Выводилась следующая ошибка:
@@ -164,6 +164,8 @@ Stop.
 ```
 
 При этом, файлы libcrypto.lib и libssl.lib были собраны и находились в папке `e:\curlsrc\openssl`.
+
+Сборка openssl 3.0 также была не
 
 Однако, было принято временное решение собирать openssl без zlib.
 
