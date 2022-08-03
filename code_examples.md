@@ -86,6 +86,30 @@ curl_easy_setopt(curl, CURLOPT_SSLCERT, pCertFile);
 curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
 ```
 
+## Настройка proxy-сервера
+
+Чтобы использовать функцию WinHttpGetIEProxyConfigForCurrentUser() следует подключить библиотеку **Winhttp.lib**. Пример кода извлечения данных о прокси-сервере:
+
+``` cpp
+#include <Winhttp.h>
+...
+WINHTTP_CURRENT_USER_IE_PROXY_CONFIG pProxyConfig;
+pProxyConfig.fAutoDetect = TRUE;
+bool bHasProxy = WinHttpGetIEProxyConfigForCurrentUser(&pProxyConfig);
+...
+	if (bHasProxy && pProxyConfig.lpszProxy != NULL) {
+#ifdef _UNICODE
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+		const std::string strProxy = converter.to_bytes(pProxyConfig.lpszProxy);
+		curl_easy_setopt(curl, CURLOPT_PROXY, strProxy.c_str());
+#else
+	    curl_easy_setopt(curl, CURLOPT_PROXY, pProxyConfig.lpszProxy);
+#endif
+	}
+```
+
+Заметим, что параметр **lpszProxyBypass** необходимо обрабатывать вручную.
+
 ## Получить данные от сервера. Пример
 
 Сначала требуется разработать функцию накопления возвращаемых результатов:
