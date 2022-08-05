@@ -214,3 +214,46 @@ if (curl) {
 ``` cpp
 ::AfxMessageBox(s.c_str(), MB_OK);
 ```
+
+## Выгрузка данных на сервер (POST-запрос)
+
+Указать, что необходимо выполнить POST-запрос, а также указать выгружаемые данные можно так:
+
+``` cpp
+curl_easy_setopt(curl, CURLOPT_POST, 1L);
+curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strData.c_str());
+```
+
+Также мы можем добавить дополнительные поля в MIME-заголовок:
+
+``` cpp
+struct curl_slist *hs = NULL;
+hs = curl_slist_append(hs, "Content-Type: text/html");
+hs = curl_slist_append(hs, "Pragma: no-cache");
+hs = curl_slist_append(hs, "User-Agent: SPDO_WRITE");
+curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+```
+
+Простейшее приложение на Node.js/Express для проверки POST-запроса:
+
+``` js
+const express = require('express')
+const app = express()
+
+const bodyParser = require('body-parser');
+app.use(bodyParser.text({ type: 'text/html' }));
+
+var port = 3000;
+app.post('/', (req, res) => {
+	console.log("Raw Headers:")
+	console.dir(req.rawHeaders);
+	console.log("Method:" + req.method)
+	console.log('Got body:', req.body);
+	
+	res.send('OK');
+});
+
+app.listen(port, () => {
+	console.log('Server is up on port ' + port + '.');
+});
+```
