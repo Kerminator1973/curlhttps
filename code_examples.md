@@ -259,3 +259,16 @@ app.listen(port, () => {
 	console.log('Server is up on port ' + port + '.');
 });
 ```
+
+## Контроль Redirections из curl-клиента
+
+В случае, если потребовалась переадрессовка запроса, получить эффективный URL (куда в конце концов был переброшен запрос) можно с помощью CURLOPT_FOLLOWLOCATION и CURLINFO_EFFECTIVE_URL:
+
+``` cpp
+curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+CURLcode result = curl_easy_perform(curl);
+if (result == CURLE_OK) {
+	char* response_url = nullptr;
+	curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &response_url);
+```
