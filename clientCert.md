@@ -85,7 +85,7 @@ curl -v -i -k --cert badssl.com‐client.pem:badssl.com -x 192.168.100.200:3128 
 
 ## Пример клиентского кода на C\#
 
-Замечу, что приведённый код пока не работает, т.к. не извлекается private key из pem-файла:
+Ниже приведён пример приложения на C#, который отправляет клиентский сертификат на сервер badssl.com:
 
 ``` csharp
 using System.Net;
@@ -106,7 +106,7 @@ var handler = new HttpClientHandler()
 };
 
 // Добавляем клиентский сертификат, который был нам предоставлен сайтом badssl.com
-var cert = new X509Certificate2("c:/Temp/badssl.com-client.pem", "badssl.com");
+var cert = new X509Certificate2("c:/Temp/badssl.com-client.p12", "badssl.com");
 handler.ClientCertificates.Add(cert);
 
 var client = new HttpClient(handler);
