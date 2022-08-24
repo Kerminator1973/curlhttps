@@ -12,7 +12,7 @@
 
 Для выполнения запроса с аутентификацией клиента необходимо указать клиентский сертификат в Settings -> Certificate. Для подключения к badssl требуется указать файл "badssl.com-client.p12", host - "client.badssl.com", а также пароль "badssl.com". Пример настройки:
 
-![alt text](./PostmamAndClientCertificate.png "Client certificate's settings for Postman")
+![alt text](./PostmanAndClientCertificate.png "Client certificate's settings for Postman")
 
 Запрос к сайту должен выглядеть следующим образом: https://client.badssl.com
 
@@ -81,4 +81,48 @@ curl -v -i -k --cert badssl.com‐client.pem:badssl.com -x 192.168.100.200:3128 
 > Host: client.badssl.com
 > User-Agent: curl/7.84.0
 > Accept: */*
+```
+
+## Пример клиентского кода на C\#
+
+Замечу, что приведённый код пока не работает, т.к. не извлекается private key из pem-файла:
+
+``` csharp
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+
+// Для доступа к сайтам в интернет, необходимо указать Proxy
+var proxy = new WebProxy
+{
+    Address = new Uri($"http://192.168.100.200:3128"),
+    BypassProxyOnLocal = false,
+    UseDefaultCredentials = true,
+};
+
+// Указываем, что следует идти через прокси
+var handler = new HttpClientHandler()
+{
+    Proxy = proxy,
+};
+
+// Добавляем клиентский сертификат, который был нам предоставлен сайтом badssl.com
+var cert = new X509Certificate2("c:/Temp/badssl.com-client.pem", "badssl.com");
+handler.ClientCertificates.Add(cert);
+
+var client = new HttpClient(handler);
+
+// Описываем запрос по https
+var request = new HttpRequestMessage()
+{
+    RequestUri = new Uri("https://client.badssl.com"),
+    Method = HttpMethod.Get,
+};
+
+// Выполняем запрос 
+var response = await client.SendAsync(request);
+if (response.IsSuccessStatusCode)
+{
+    var responseContent = response.Content.ReadAsStream();
+    Console.WriteLine(new StreamReader(responseContent).ReadToEnd());
+}
 ```
