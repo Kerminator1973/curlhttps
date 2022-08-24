@@ -12,7 +12,7 @@
 
 Для выполнения запроса с аутентификацией клиента необходимо указать клиентский сертификат в Settings -> Certificate. Для подключения к badssl требуется указать файл "badssl.com-client.p12", host - "client.badssl.com", а также пароль "badssl.com". Пример настройки:
 
-![alt text](./PostmanAndClientCertificate.png "Client certificate's settings for Postman")
+![alt text](./PostmanAddClientCertificate.png "Client certificate's settings for Postman")
 
 Запрос к сайту должен выглядеть следующим образом: https://client.badssl.com
 
