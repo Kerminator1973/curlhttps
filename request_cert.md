@@ -4,6 +4,8 @@
 
 Портал может быть построен на устаревших технологиях и, например, требовать браузера Internet Explorer, работающего в режиме совместимости. В ГК ДОРС ссылка на портал такая: https://ca-inet.msk.shq/certsrv/
 
+![alt text](./CertificateServicesHomepage.png "Homepage")
+
 Для генерации сертификата следует сформировать соответствующий запрос. Пример заполнения формы приведён ниже:
 
 ![alt text](./ClientCertificateRequest.png "Request certificate")
