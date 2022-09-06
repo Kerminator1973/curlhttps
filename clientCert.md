@@ -168,3 +168,22 @@ if (response.IsSuccessStatusCode)
 - Параметры ключа
 - Отпечаток ключа (_Thumbprint_)
 - Friendly name (например: ASP.NET Core HTTPS development certificate)
+
+## Параметры curl-запроса для передачи клиентского сертификата серверу
+
+Экспериментально подтверждённый набор параметров для передачи клиентского сертификата серверу:
+
+``` cpp
+struct curl_blob clientCertBlob;
+
+clientCertBlob.data = (void*)lpcszClientCertificate;
+clientCertBlob.len = strlen(lpcszClientCertificate);
+
+// Устанавливаем клиентский сертификат
+curl_easy_setopt(curl, CURLOPT_SSLCERT_BLOB, &clientCertBlob);
+// Устанавливаем клиентский сертификат из файла (для отладки)
+//curl_easy_setopt(curl, CURLOPT_SSLCERT, "c:/Temp/badssl.com-client.pem");
+
+// Указываем пароль для расшифровки private-ключа клиентского сертификата
+curl_easy_setopt(curl, CURLOPT_KEYPASSWD, "badssl.com");
+```
