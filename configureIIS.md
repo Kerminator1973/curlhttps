@@ -20,6 +20,8 @@
 
 ![alt text](./ConfigurationEditor.png "The Configuration Editor")
 
+Объединить строки сертификата в одну строку можно используя Notepad++. Следует вызвать окно "Edit -> Replace (Ctrl+H)" и ввести шаблон замены "\r\n".
+
 Извлечённое тело сертификата нужно добавить в «oneToOneMappings»:
 
 ![alt text](./oneToOneMapping.png "oneToOneMapping")
