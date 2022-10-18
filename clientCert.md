@@ -138,6 +138,107 @@ if (response.IsSuccessStatusCode)
 
 Генерация клиентского сертификата в интранет описана [здесь](./request_cert.md).
 
+### Проверка клиентского сертификата приложением ASP.NET Core 6
+
+Ключевая статья [Configure certificate authentication in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/certauth?view=aspnetcore-6.0)
+
+Для удобства рекомендуется добавить класс-расширение AuthenticationExtension, например, создав файл "AuthenticationExtension.cs":
+
+``` csharp
+using Microsoft.AspNetCore.Authentication.Certificate;
+using System.Security.Cryptography.X509Certificates;
+
+namespace RUFServerObjs
+{
+    public static class AuthenticationExtension
+    {
+        public static void ConfigureAuthetication(this IServiceCollection services)
+        {
+            services.AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
+                .AddCertificate(options =>
+                {
+                    options.RevocationMode = X509RevocationMode.NoCheck;
+                    options.AllowedCertificateTypes = CertificateTypes.All;
+
+                    options.ChainTrustValidationMode = X509ChainTrustMode.System;
+                    options.ValidateCertificateUse = false;
+                    options.ValidateValidityPeriod = false;
+
+                    options.Events = new CertificateAuthenticationEvents
+                    {
+                        OnCertificateValidated = context =>
+                        {
+                            if ((context.ClientCertificate != null) &&
+                                (String.Compare(context.ClientCertificate.Subject, "E=isp@dors.com", true) == 0))
+                            {
+                                context.Success();
+                            }
+                            else 
+                            {
+                                context.Fail("invalid subject");
+                            }
+
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context => // Не обязательно
+                        {
+                            context.Fail($"Invalid certificate");
+                            return Task.CompletedTask;
+                        },
+                        OnChallenge = context =>            // Не обязательно
+                        {
+                            // Метод вызывается перед отправкой запроса вызывающей стороне
+
+                            // По умолчанию мы должны вернуть флаг выполнения задачи
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+
+            services.AddAuthorization();
+        }
+    }
+}
+```
+
+Приведённый выше код проверяет, что предоставленный клиентский сертификат был выдан владельцу, который обладает почтовым адресом "E=isp@dors.com". Могут быть добавлены и другие проверки, такие как Thumbprint.
+
+При настройке сервисов в приложении (dependency injection) добавляем сервис проверки аутентификации - реализация этого вызова приведена выше по коду:
+
+``` csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Добавляем проверку клиентского сертификата
+builder.Services.ConfigureAuthetication();
+
+// Настраиваем Kestrel таким образом, чтобы требовался клиентский сертификат
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ConfigureHttpsDefaults(o =>
+    {
+        o.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+    });
+});
+
+var app = builder.Build();
+```
+
+Далее необходимо активировать механизм аутентификации:
+
+``` csharp
+app.UseAuthentication();
+app.UseAuthorization();
+```
+
+Обработчики запросов, доступ к которым следует предоставить только при предъявлении клиентского сертификата, следует настроить соответствующим образом:
+
+``` csharp
+app.MapGet("/{device_id}", (string device_id, HttpContext httpContext, RUFObjsContext dbContext, HttpRequest request) =>
+{
+    ...
+}).RequireAuthorization();
+```
+
 ### Типовая схема использования клиентского сертификата совместно с браузером
 
 На интранет-ресурсе выполняется генерация пары ключей и пользователю предоставлявляется возможность установить private key в локальное хранилище ключей по ссылке в браузере (ссылка может называться "Install the certificate"). Клиент подтверждает необходимость установки ключей в хранилище и может просмотреть их используя "консоль оснастки" (mmc).
@@ -154,7 +255,7 @@ if (response.IsSuccessStatusCode)
 
 ## Хранилище сертификатов в Windows
 
-Доступ к хранилищу сертификатов Windows возможен через "консоль оснастки" (mmc). После запуска приложения следует добавить остастку "Сертификаты". Чаще всего добавляются оснастка "Сертификаты - текущий пользователь" и "Сертификаты - текущий компьютер".
+Доступ к хранилищу сертификатов Windows возможен через "консоль оснастки" (mmc). После запуска приложения следует добавить остастку "Сертификаты". Чаще всего добавляются оснастки "Сертификаты - текущий пользователь" и "Сертификаты - текущий компьютер".
 
 В форме просмотра сертификата есть три закладки: "Общие" (предназначение, срок действия и наличие закрытого ключа), "Состав" (различные атрибуты) и "Путь сертификации" (какие Root CA и промежуточный сертификаты используются).
 
@@ -164,7 +265,7 @@ if (response.IsSuccessStatusCode)
 - Кому выдан сертификат (имя host-а)
 - Алгоритм подписи и hash-алгоритм подписи
 - Издатель (например: CN=CA-INET;DC=msk;DC=shq)
-- Субъект - для кого выдан ключ, или для какого сервера выдан ключ (например: CN=localhost)
+- Субъект - для кого выдан ключ (например: E=isp@dors.com), или для какого сервера выдан ключ (например: CN=localhost)
 - Параметры ключа
 - Отпечаток ключа (_Thumbprint_)
 - Friendly name (например: ASP.NET Core HTTPS development certificate)
