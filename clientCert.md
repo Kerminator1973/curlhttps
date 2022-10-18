@@ -187,3 +187,15 @@ curl_easy_setopt(curl, CURLOPT_SSLCERT_BLOB, &clientCertBlob);
 // Указываем пароль для расшифровки private-ключа клиентского сертификата
 curl_easy_setopt(curl, CURLOPT_KEYPASSWD, "badssl.com");
 ```
+
+## Ошибки при настройке проверки клиентского сертификата в Windows
+
+Не смотря на то, что клиентский сертификат может быть настроен корректно, при попытке подключения к серверу, IIS может возвращать код ответа 403.16. В этом ситуации, рекомендуется ознакомиться со статьёй: https://learn.microsoft.com/ru-ru/troubleshoot/developer/webapps/iis/health-diagnostic-performance/http-403-forbidden-access-website
+
+В конкретной проблемной ситуаций была выполнена следующая команда PowerShell:
+
+``` powershell
+Get-Childitem cert:\LocalMachine\root -Recurse | Where-Object {$_.Issuer -ne $_.Subject} | Format-List * | Out-File "c:\computer_filtered.txt"
+```
+
+В файле "c:\computer_filtered.txt" появилась информация о том, что в списке доверенных корневых центров сертификации появился самоподписанный сертификат "Admin" (был сгенерирован корпоративной PKI системой). После того, как этот сертификат был удалён, проверка клиентского сертификата как средствами IIS, так и приложением ASP.NET Core 6, завершилась успехом.
