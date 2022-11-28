@@ -45,6 +45,33 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 result = curl_easy_perform(curl);
 ```
 
+Библиотека libcurl позволяет устанавливать тайм-аут как на установление соединения с сервером, так и на общее время загрузки данных:
+
+```cpp
+// Устанавливаем ограничение на время подключения к серверу составляет 15 секунд
+curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
+
+// Устанавливаем тайм-аут на выполнение операции в 2 минуты. У заказчиков в Африке 
+// может быть очень медленный интернет
+curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
+```
+
+Указать адрес proxy-сервера можно следующим образом:
+
+```cpp
+// Получаем адрес прокси-сервера
+WINHTTP_CURRENT_USER_IE_PROXY_CONFIG pProxyConfig;
+pProxyConfig.fAutoDetect = true;
+BOOL bHasProxy = WinHttpGetIEProxyConfigForCurrentUser(&pProxyConfig);
+if (bHasProxy && pProxyConfig.lpszProxy != NULL) {
+	m_strProxy = pProxyConfig.lpszProxy;
+}
+...
+if (!m_strProxy.empty()) {
+	curl_easy_setopt(curl, CURLOPT_PROXY, converter.to_bytes(m_strProxy).c_str());
+}
+```
+
 Для того, чтобы curl проверял сертификат сервера, следует скачать [CA сертификаты Mozilla](https://curl.se/docs/caextract.html)
 
 Проверка имени хоста и сертификата в сертификате осуществляется, если установить следующие флаги:
