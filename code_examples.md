@@ -72,6 +72,28 @@ if (!m_strProxy.empty()) {
 }
 ```
 
+При считывании системных параметров прокси-сервера следует учитывать исключения (lpszProxyBypass). Если искомый домен находится в исключениях, то следует не устанавливать подключение через прокси:
+
+``` cpp
+WINHTTP_CURRENT_USER_IE_PROXY_CONFIG pProxyConfig;
+pProxyConfig.fAutoDetect = true;
+BOOL bHasProxy = WinHttpGetIEProxyConfigForCurrentUser(&pProxyConfig);
+if (bHasProxy && pProxyConfig.lpszProxy != NULL) {
+
+	m_strProxy = pProxyConfig.lpszProxy;	// Сначала устанавливаем
+
+	if (pProxyConfig.lpszProxyBypass != NULL) {
+		std::vector<std::string> domains;
+		boost::split(domains, pProxyConfig.lpszProxyBypass, boost::is_any_of(";"));
+
+		std::string key("bvsupdate.dors.ru");
+		if (std::find(domains.begin(), domains.end(), key) != domains.end()) {
+			m_strProxy.clear();				// Но если домен в исключениях, то сбрасываем
+		}
+	}
+}
+```
+
 Для того, чтобы curl проверял сертификат сервера, следует скачать [CA сертификаты Mozilla](https://curl.se/docs/caextract.html)
 
 Проверка имени хоста и сертификата в сертификате осуществляется, если установить следующие флаги:
