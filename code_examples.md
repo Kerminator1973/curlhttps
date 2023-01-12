@@ -45,6 +45,16 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 result = curl_easy_perform(curl);
 ```
 
+Получить Http Status Codes можно после успешного вызова curl_easy_perform() используя функцию curl_easy_getinfo():
+
+```cpp
+CURLcode result = curl_easy_perform(curl);
+if (result == CURLE_OK) {
+	long http_code = 0;
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+	if (http_code >= 400) { // Обрабатываем Http Status Codes
+```
+
 Библиотека libcurl позволяет устанавливать тайм-аут как на установление соединения с сервером, так и на общее время загрузки данных:
 
 ```cpp
