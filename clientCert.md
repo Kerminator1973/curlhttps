@@ -201,7 +201,28 @@ namespace RUFServerObjs
 }
 ```
 
-Приведённый выше код проверяет, что предоставленный клиентский сертификат был выдан владельцу, который обладает почтовым адресом "E=isp@dors.com". Могут быть добавлены и другие проверки, такие как Thumbprint.
+Приведённый выше код проверяет, что предоставленный клиентский сертификат был выдан владельцу, который обладает почтовым адресом `E=isp@dors.com`. Могут быть добавлены и другие проверки, такие как Thumbprint.
+
+**Update 2023**: при получении нового клиентского сертификата выяснилось, что в атрибуте "Subject" есть ещё одно поле `CN=`. Соответственно, потребовалось переработать код проверки следующим образом:
+
+```csharp
+if (context.ClientCertificate != null) {
+
+    string trimmed = String.Concat(context.ClientCertificate.Subject.Where(c => !Char.IsWhiteSpace(c)));
+    if (trimmed.IndexOf("E=isp@dors.com", StringComparison.InvariantCultureIgnoreCase) >= 0)
+    {
+        context.Success();
+    }
+    else
+    {
+        context.Fail("the correct subject is not found");
+    }
+} 
+else 
+{
+    context.Fail("the client certificate is not found");
+}
+```
 
 При настройке сервисов в приложении (dependency injection) добавляем сервис проверки аутентификации - реализация этого вызова приведена выше по коду:
 
