@@ -76,3 +76,42 @@ boost::system::error_code ec;
 socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 socket.close();
 ```
+
+## Вычисление хэша MD5
+
+Следующий _snippet_ вычисляет хэша MD5 для логина и пароля в системе ЭСКД ProIDC:
+
+```cpp
+#include <boost/uuid/detail/md5.hpp>
+#include <boost/algorithm/hex.hpp>
+
+using boost::asio::ip::tcp;
+using boost::uuids::detail::md5;
+
+std::string toString(const md5::digest_type &digest)
+{
+    const auto intDigest = reinterpret_cast<const int*>(&digest);
+    std::string result;
+    boost::algorithm::hex(intDigest, intDigest + (sizeof(md5::digest_type)/sizeof(int)), std::back_inserter(result));
+    return result;
+}
+```
+
+```cpp
+// Вычисляем MD5-хэш из логина и пароля пользователя
+md5 hash;
+md5::digest_type digest;
+
+// byte[] bytesPwdHash = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(UID + "_" + strRawPWD));
+std::string s;
+s = utf8_encode(ansi2unicode("Администратор_38Gjgeuftd_"));
+
+hash.process_bytes(s.data(), s.size());
+hash.get_digest(digest);
+
+std::cout << "md5(" << s << ") = " << toString(digest) << '\n';
+```
+
+Следует заметить, что начиная с 1.70.0, [Boost не содержит реализации MD5](https://github.com/boostorg/uuid/issues/111), которая валидируется сетевыми инструментальными средствами. Заметим, что в коде используется библиотека boost::uuids, от которой не требуется совместимости с MD5, но которая использовала MD5 в качестве одного из компонентов своей реализации.
+
+Однако, в моём конкретном примере, который собран с использованием 1.74, хэш-код совпал с генерируемым Microsoft.NET Framework 4.8.
