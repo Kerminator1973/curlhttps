@@ -115,3 +115,10 @@ std::cout << "md5(" << s << ") = " << toString(digest) << '\n';
 Следует заметить, что начиная с 1.70.0, [Boost не содержит реализации MD5](https://github.com/boostorg/uuid/issues/111), которая валидируется сетевыми инструментальными средствами. Заметим, что в коде используется библиотека boost::uuids, от которой не требуется совместимости с MD5, но которая использовала MD5 в качестве одного из компонентов своей реализации.
 
 Однако, в моём конкретном примере, который собран с использованием 1.74, хэш-код совпал с генерируемым Microsoft.NET Framework 4.8.
+
+Важно заметить, что в выпуске 1.71 есть комментарий о внесённых изменениях в **uuid**:
+
+```doc
+Uuid:
+Breaking change: MD5 name-based uuid generation was corrected to be identical on all endian systems. Define BOOST_UUID_COMPAT_PRE_1_71_MD5 to keep the result in a format compatible with 1.66 through 1.70. This does not affect the default name-based uuid generation which is based on SHA1. (PR#109)
+```
