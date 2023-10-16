@@ -77,6 +77,20 @@ socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 socket.close();
 ```
 
+## Миграция на новые версии Boost
+
+В старых версиях использовались Boost, bind() был определён в заголовочных файлах:
+
+```cpp
+#include <boost/bind.hpp>
+```
+
+В новых версиях Boost следует использовать следующий включаемый файл:
+
+```cpp
+#include <boost/bind/bind.hpp>
+```
+
 ## Вычисление хэша MD5
 
 Следующий _snippet_ вычисляет хэша MD5 для логина и пароля в системе ЭСКД ProIDC:
