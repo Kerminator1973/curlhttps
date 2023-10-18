@@ -2,9 +2,7 @@
 
 Асинхронный режим гораздо более эффективно использует вычислительный ресурс процессора.
 
-Первый вариант клиентского приложения взят с [сайта](https://www.codingwiththomas.com/blog/boost-asio-server-client-example).
-
-TODO: класс [io_service является устаревшим](https://stackoverflow.com/questions/59753391/boost-asio-io-service-vs-io-context). Вместо него нужно использовать **io_context**. Это потребует и модификации вызовов методов.
+Первый вариант клиентского приложения взят с [сайта](https://www.codingwiththomas.com/blog/boost-asio-server-client-example). Одно из замечаний к заимстрованному приложению: класс [io_service является устаревшим](https://stackoverflow.com/questions/59753391/boost-asio-io-service-vs-io-context). Вместо него нужно использовать **io_context**.
 
 Для реализации процесса взаимодействия рекомендуется разработать специализированный класс, например, **TCPClient**. Заголовочный файл "tcpClientCmd.h" может выглядеть следующим образом:
 
@@ -18,7 +16,7 @@ using boost::asio::ip::tcp;
 class TCPClient
 {
     public:
-        TCPClient(boost::asio::io_service& IO_Service, tcp::resolver::iterator EndPointIter);
+        TCPClient(boost::asio::io_context& ioContext, tcp::resolver::iterator EndPointIter);
 
         // Метод добавляет в очередь задач асинхронную задачу завершения операции
         void Close();
@@ -26,14 +24,16 @@ class TCPClient
     private:
         // Ссылка на очередь асинхронных операций. Используется для добавления
         // в очередь новых задач
-        boost::asio::io_service& m_IOService;
+        boost::asio::io_context& m_ioContext;
 
         tcp::socket m_Socket;
 
         // Буфер, содержит строку, передаваемую на сервер ЭСКД ProIDC
         std::string m_SendBuffer;
 
-        // TODO: реализовать докачку сообщений
+        // Устанавливаем буфер размером 8K - этого должно хватить для получения списка
+        // пользовательских ролей.
+        // TODO: реализовать докачку сообщений (топологическая схема может быть очень большой)
         boost::array<char, 8192> m_RecieveBuffer;
 
         // Callback-методы, отрабатывающие задачи операции выполнения http-запроса
@@ -41,8 +41,7 @@ class TCPClient
         void OnReceive(const boost::system::error_code& ErrorCode, std::size_t readBytes);
         void OnSend(const boost::system::error_code& ErrorCode);
         void DoClose();
-};
-```
+};```
 
 Реализация класса, в файле "tcpClientCmd.cpp" может выглядеть так:
 
@@ -56,19 +55,17 @@ class TCPClient
 using boost::asio::ip::tcp;
 
 
-TCPClient::TCPClient(boost::asio::io_service& IO_Service, tcp::resolver::iterator EndPointIter)
-: m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer(""), m_RecieveBuffer()
+TCPClient::TCPClient(boost::asio::io_context& ioContext, tcp::resolver::iterator EndPointIter)
+: m_ioContext(ioContext), m_Socket(ioContext), m_SendBuffer(""), m_RecieveBuffer()
 {
     tcp::endpoint EndPoint = *EndPointIter;
-
     m_Socket.async_connect(EndPoint,
         boost::bind(&TCPClient::OnConnect, this, boost::asio::placeholders::error, ++EndPointIter));
 }
 
 void TCPClient::Close()
 {
-    m_IOService.post(
-        boost::bind(&TCPClient::DoClose, this));
+    m_ioContext.post( boost::bind(&TCPClient::DoClose, this));
 }
 
 void TCPClient::OnConnect(const boost::system::error_code& ErrorCode, tcp::resolver::iterator EndPointIter)
@@ -172,7 +169,7 @@ using boost::asio::ip::tcp;
 int main(int argc, char* argv[])
 {
     std::setlocale(LC_ALL, "Russian");
-    std::locale loc(".1251");	// Указываем кодовую страницу
+    std::locale loc(".1251");
     std::locale::global(loc);
 
     try 
@@ -180,23 +177,23 @@ int main(int argc, char* argv[])
         std::cout << "Client is starting..." << std::endl;
 
         // Создаём очередь для выполнения асинхронных операций
-        boost::asio::io_service IO_Service;
+        boost::asio::io_context io_Context;
 
         // Выполняем запрос на поиск Endpoints (IP-адресов) по указанному URL и порту.
         // Гипотетически, результирующих Endpoints может быть несколько и нам следует
         // использовать тот, который является активным (т.е. сможет ответить на выполнение
         // операции connect)
-        tcp::resolver Resolver(IO_Service);
+        tcp::resolver Resolver(io_Context);
         tcp::resolver::query Query("127.0.0.1", "22222");
         tcp::resolver::iterator EndPointIterator = Resolver.resolve(Query);
 
         // Создаём объект, который реализует процесс взаимодействия с сервером целиком
-        TCPClient Client(IO_Service, EndPointIterator);
+        TCPClient Client(io_Context, EndPointIterator);
 
         std::cout << "Client is started!" << std::endl;
 
         // Связываем поток исполнения и запускаем в нём очередь выполнения асинхронных запросов
-        boost::thread ClientThread(boost::bind(&boost::asio::io_service::run, &IO_Service));
+        boost::thread ClientThread(boost::bind(&boost::asio::io_service::run, &io_Context));
 
         // Ждём завершения потока и закрываем сетевое соединение
         ClientThread.join();
@@ -221,7 +218,7 @@ int main(int argc, char* argv[])
 
 ```cpp
 // Связываем поток исполнения и запускаем в нём очередь выполнения асинхронных запросов
-boost::thread ClientThread(boost::bind(&boost::asio::io_service::run, &IO_Service));
+boost::thread ClientThread(boost::bind(&boost::asio::io_service::run, &io_Context));
 
 // Ждём ввода команды. Команда x - позволяет остановить работу приложения
 for (;;) {
@@ -243,15 +240,14 @@ Client.Close();
 Отмена последней асинхронной операции может быть реализована следующим образом:
 
 ```cpp
-void TCPClient::Cancel()
+void TCPClient::Close()
 {
-    m_IOService.post(
-        boost::bind(&TCPClient::DoCancel, this));
+    m_ioContext.post(boost::bind(&TCPClient::DoClose, this));
 }
 
-void TCPClient::DoCancel()
+void TCPClient::Cancel()
 {
-    m_Socket.cancel();
+    m_ioContext.post(boost::bind(&TCPClient::DoCancel, this));
 }
 ```
 
