@@ -240,14 +240,14 @@ Client.Close();
 Отмена последней асинхронной операции может быть реализована следующим образом:
 
 ```cpp
-void TCPClient::Close()
-{
-    m_ioContext.post(boost::bind(&TCPClient::DoClose, this));
-}
-
 void TCPClient::Cancel()
 {
     m_ioContext.post(boost::bind(&TCPClient::DoCancel, this));
+}
+
+void TCPClient::DoCancel()
+{
+    m_Socket.cancel();
 }
 ```
 
