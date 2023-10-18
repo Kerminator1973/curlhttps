@@ -4,6 +4,8 @@
 
 Первый вариант клиентского приложения взят с [сайта](https://www.codingwiththomas.com/blog/boost-asio-server-client-example).
 
+TODO: класс [io_service является устаревшим](https://stackoverflow.com/questions/59753391/boost-asio-io-service-vs-io-context). Вместо него нужно использовать **io_context**. Это потребует и модификации вызовов методов.
+
 Для реализации процесса взаимодействия рекомендуется разработать специализированный класс, например, **TCPClient**. Заголовочный файл "tcpClientCmd.h" может выглядеть следующим образом:
 
 ```cpp
@@ -208,5 +210,67 @@ int main(int argc, char* argv[])
     std::cout << "\nClosing";
 
     return 0;
+}
+```
+
+## Зачем нужно запускать поток исполнения и связывать его с Executor-ом
+
+[Executor](https://alandefreitas.github.io/moderncpp/programming-paradigms/parallelism/executors/)-ом называется экземпляр класса boost::asio::**io_context**, boost::asio::**io_service**. В приведённом выше коде, имя соответствующего исполнителя - m_IOService.
+
+Если мы запускаем исполнителя в отдельном потоке, мы можем использовать поток пользовательского интерфейса для взаимодействия с пользователем, например:
+
+```cpp
+// Связываем поток исполнения и запускаем в нём очередь выполнения асинхронных запросов
+boost::thread ClientThread(boost::bind(&boost::asio::io_service::run, &IO_Service));
+
+// Ждём ввода команды. Команда x - позволяет остановить работу приложения
+for (;;) {
+    std::string s;
+    std::cin >> s;
+    if (s.compare("x") == 0) {
+        std::cout << "Quitting...\"\n";
+
+        Client.Cancel();
+        break;
+    }
+}
+
+// Ждём завершения потока и закрываем сетевое соединение
+ClientThread.join();
+Client.Close();
+```
+
+Подобное поведение может иметь смысл, когда соединение между сервером и клиентом не разрывается, обеспечивая асинхронный обмен сообщениями:
+
+```cpp
+void TCPClient::OnReceive(const boost::system::error_code& ErrorCode, std::size_t readBytes)
+{
+    if (!ErrorCode)
+    {
+        std::cout << "Read bytes:" << readBytes << std::endl;
+
+        if (readBytes >= 4) {
+
+            uint32_t realInput = ntohl(*((u_long*)m_RecieveBuffer.data()));
+            std::cout << "ntohl: " << realInput << " bytes" << std::endl;
+
+            std::string content(m_RecieveBuffer.data() + 4, m_RecieveBuffer.data() + readBytes);
+            std::string ansi = unicode2ansi(utf8_decode(content));
+            std::cout << ansi << std::endl;
+        }
+
+        // Для механизма подписки на события, посылаем команду получения данных от
+        // контроллера ещё раз
+        m_Socket.async_read_some(boost::asio::buffer(m_RecieveBuffer),
+            boost::bind(&TCPClient::OnReceive, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred)
+        );
+    } 
+    else 
+    {
+        std::cout << "ERROR! OnReceive..." << ErrorCode.message() << std::endl;
+        DoClose();
+    }
 }
 ```
