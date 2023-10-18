@@ -240,6 +240,21 @@ ClientThread.join();
 Client.Close();
 ```
 
+Отмена последней асинхронной операции может быть реализована следующим образом:
+
+```cpp
+void TCPClient::Cancel()
+{
+    m_IOService.post(
+        boost::bind(&TCPClient::DoCancel, this));
+}
+
+void TCPClient::DoCancel()
+{
+    m_Socket.cancel();
+}
+```
+
 Подобное поведение может иметь смысл, когда соединение между сервером и клиентом не разрывается, обеспечивая асинхронный обмен сообщениями:
 
 ```cpp
