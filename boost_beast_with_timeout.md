@@ -60,14 +60,7 @@ public:
 
 #pragma once
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/asio/strand.hpp>
-#include <cstdlib>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include <string>
+#include <iostream>     // std::cerr
 #include "asyncHttpSession.h"
 
 // Выводим в консоль сообщение об ошибке выполнения операции
