@@ -54,10 +54,9 @@ public:
 };
 ```
 
-Реализация:
+Реализация кода может выглядеть следующим образом:
 
 ```cpp
-
 #pragma once
 
 #include <iostream>     // std::cerr
