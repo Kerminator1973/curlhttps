@@ -195,3 +195,26 @@ int PutRequestToD820Async(const std::string& strIPAddr, const std::string& reqBo
     return session->getErrorCode();
 }
 ```
+
+Ограничение времени выполнения операции осуществляется посредством добавления вызова:
+
+```cpp
+stream_.expires_after(std::chrono::seconds(2));
+```
+
+При выборе http-глагола (GET, POST, PUT, DELETE) следует скорректировать типы используемых буферов. Например, если мы используем глалог PUT:
+
+```cpp
+req_.method(http::verb::put);
+```
+
+То экземпляр класса `http::request<>` должен быть специализирован типом `string_body`, а не `empty_body`:
+
+```cpp
+http::request<http::string_body> req_;
+http::response<http::string_body> res_;
+```
+
+Также следует помнить о том, что в стандарте HTTP 1.1 требуется указывать в MIME-заголовке поле "Host" - многие из серверных решений (Express на Node.js) игнорируют запросы, в которых поле "Host" не используется.
+
+Если мы хотим иметь какую-то общую оценку выполнения всей задачи получения данных с сервера, её можно сделать атрибутом класса asyncHttpSession и проверять её значение после завершения выполнения всех асинхронных задач.
