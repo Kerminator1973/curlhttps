@@ -2,7 +2,7 @@
 
 Асинхронный режим гораздо более эффективно использует вычислительный ресурс процессора.
 
-Первый вариант клиентского приложения взят с [сайта](https://www.codingwiththomas.com/blog/boost-asio-server-client-example). Одно из замечаний к заимстрованному приложению: класс [io_service является устаревшим](https://stackoverflow.com/questions/59753391/boost-asio-io-service-vs-io-context). Вместо него нужно использовать **io_context**.
+Первый вариант клиентского приложения взят с [сайта](https://www.codingwiththomas.com/blog/boost-asio-server-client-example). Одно из замечаний к заимствованному приложению: класс [io_service является устаревшим](https://stackoverflow.com/questions/59753391/boost-asio-io-service-vs-io-context). Вместо него нужно использовать **io_context**.
 
 Для реализации процесса взаимодействия рекомендуется разработать специализированный класс, например, **TCPClient**. Заголовочный файл "tcpClientCmd.h" может выглядеть следующим образом:
 
